@@ -70,9 +70,10 @@ public class DataInitializer {
                     new ServiceSeed("ROOM_CLEANING", 300),
                     new ServiceSeed("LAUNDRY", 200),
                     new ServiceSeed("FOOD_ORDER", 500),
-                    new ServiceSeed("AIRPORT_PICKUP", 1500),
-                    new ServiceSeed("SPA", 2000)
+                    new ServiceSeed("SPA", 1500),
+                    new ServiceSeed("AIRPORT_PICKUP", 1200)
             );
+
 
             for (ServiceSeed seed : services) {
                 if (serviceTypeRepository.findByName(seed.name()).isEmpty()) {

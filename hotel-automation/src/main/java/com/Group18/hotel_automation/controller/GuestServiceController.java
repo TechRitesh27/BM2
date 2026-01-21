@@ -3,7 +3,7 @@ package com.Group18.hotel_automation.controller;
 import com.Group18.hotel_automation.dto.CreateServiceRequest;
 import com.Group18.hotel_automation.entity.ServiceRequest;
 import com.Group18.hotel_automation.service.ServiceRequestService;
-import lombok.RequiredArgsConstructor;
+//import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/guest/services")
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class GuestServiceController {
 
     private final ServiceRequestService service;
