@@ -40,4 +40,17 @@ public class AdminRoomController {
         roomService.deactivateRoom(id);
         return ResponseEntity.ok("Room deactivated successfully");
     }
+
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<String> activateRoom(@PathVariable Long id) {
+        roomService.activateRoom(id);
+        return ResponseEntity.ok("Room activated successfully");
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Room>> getAllRoomsIncludingInactive() {
+        return ResponseEntity.ok(roomService.getAllRooms());
+    }
+
+
 }

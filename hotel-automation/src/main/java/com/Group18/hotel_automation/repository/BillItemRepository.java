@@ -10,4 +10,6 @@ public interface BillItemRepository extends JpaRepository<BillItem, Long> {
 
     List<BillItem> findByBillOrderByCreatedAtAsc(Bill bill);
 
+    List<BillItem> findByBillId(Long billId);
+
 }

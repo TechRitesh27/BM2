@@ -43,12 +43,12 @@ public class AuthController {
     }
 
     // -------- CREATE STAFF (ADMIN) --------
-    @PostMapping("/create-staff")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> createStaff(
-            @Valid @RequestBody CreateStaffRequest request) {
-
-        authService.createStaff(request);
-        return ResponseEntity.ok("Staff created successfully");
-    }
+//    @PostMapping("/create-staff")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<String> createStaff(
+//            @Valid @RequestBody CreateStaffRequest request) {
+//
+//        authService.createStaff(request);
+//        return ResponseEntity.ok("Staff created successfully");
+//    }
 }

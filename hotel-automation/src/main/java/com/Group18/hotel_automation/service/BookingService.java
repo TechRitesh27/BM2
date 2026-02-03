@@ -147,4 +147,25 @@ public class BookingService {
 
         return booking;
     }
+
+    public List<Booking> getAllBookings() {
+        return bookingRepository.findAll();
+    }
+
+    public Booking updateBookingStatus(Long id, BookingStatus status) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        booking.setStatus(status);
+        return bookingRepository.save(booking);
+    }
+
+    public void cancelBooking(Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+    }
+
 }

@@ -63,4 +63,16 @@ public class RoomService {
         room.setActive(false);
         roomRepository.save(room);
     }
+
+    public void activateRoom(Long id) {
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+        room.setActive(true);
+        roomRepository.save(room);
+    }
+
+    public List<Room> getAllRooms() {
+        return roomRepository.findAll();
+    }
+
 }
