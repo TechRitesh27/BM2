@@ -20,6 +20,10 @@ public class ServiceType {
 
     private Boolean active = true;
 
+    @ManyToOne
+    @JoinColumn(name = "staff_type_id", nullable = false)
+    private StaffType staffType;
+
     public Long getId() {
         return id;
     }
@@ -50,5 +54,13 @@ public class ServiceType {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public StaffType getStaffType() {
+        return staffType;
+    }
+
+    public void setStaffType(StaffType staffType) {
+        this.staffType = staffType;
     }
 }

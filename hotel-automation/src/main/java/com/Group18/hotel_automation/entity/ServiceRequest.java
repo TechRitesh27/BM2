@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import com.Group18.hotel_automation.enums.ServiceRequestStatus;
 
 @Entity
 @Table(name = "service_requests")
@@ -29,8 +30,9 @@ public class ServiceRequest {
     @JoinColumn(name = "service_type_id", nullable = false)
     private ServiceType serviceType;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status; // PENDING, ASSIGNED, COMPLETED
+    private ServiceRequestStatus status;
 
     // optional staff assignment
     @ManyToOne
@@ -39,6 +41,9 @@ public class ServiceRequest {
 
     private LocalDateTime requestedAt;
     private LocalDateTime completedAt;
+
+    @Column(length = 500)
+    private String rejectionReason;
 
     public Long getId() {
         return id;
@@ -72,14 +77,6 @@ public class ServiceRequest {
         this.serviceType = serviceType;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public User getAssignedStaff() {
         return assignedStaff;
     }
@@ -102,5 +99,21 @@ public class ServiceRequest {
 
     public void setCompletedAt(LocalDateTime completedAt) {
         this.completedAt = completedAt;
+    }
+
+    public ServiceRequestStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ServiceRequestStatus status) {
+        this.status = status;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 }

@@ -20,4 +20,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByUserOrderByCreatedAtDesc(User user);
 
+    List<Booking> findByRoomAndStatusInAndCheckOutAfterAndCheckInBefore(
+            Room room,
+            List<BookingStatus> statuses,
+            LocalDate checkIn,
+            LocalDate checkOut
+    );
+
+    long countByStatus(BookingStatus status);
+
 }

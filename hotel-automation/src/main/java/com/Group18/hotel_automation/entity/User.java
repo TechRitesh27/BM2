@@ -34,7 +34,7 @@ public class User {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "staff_type_id")
     private StaffType staffType; // null for ADMIN & GUEST
 

@@ -64,22 +64,31 @@ public class DataInitializer {
             }
 
             // -------- SERVICE TYPES --------
-            record ServiceSeed(String name, double price) {}
+            record ServiceSeed(String name, double price, String staffTypeName) {}
 
             List<ServiceSeed> services = List.of(
-                    new ServiceSeed("ROOM_CLEANING", 300),
-                    new ServiceSeed("LAUNDRY", 200),
-                    new ServiceSeed("FOOD_ORDER", 500),
-                    new ServiceSeed("SPA", 1500),
-                    new ServiceSeed("AIRPORT_PICKUP", 1200)
+                    new ServiceSeed("ROOM_CLEANING", 300, "HOUSEKEEPING"),
+                    new ServiceSeed("LAUNDRY", 200, "HOUSEKEEPING"),
+                    new ServiceSeed("FOOD_ORDER", 500, "KITCHEN"),
+                    new ServiceSeed("SPA", 1500, "FRONT_DESK"),
+                    new ServiceSeed("AIRPORT_PICKUP", 1200, "TRANSPORT")
             );
 
 
             for (ServiceSeed seed : services) {
+
                 if (serviceTypeRepository.findByName(seed.name()).isEmpty()) {
+
+                    StaffType staffType = staffTypeRepository
+                            .findByName(seed.staffTypeName())
+                            .orElseThrow(() -> new RuntimeException("StaffType not found"));
+
                     ServiceType st = new ServiceType();
                     st.setName(seed.name());
                     st.setPrice(seed.price());
+                    st.setStaffType(staffType); // 🔥 IMPORTANT
+                    st.setActive(true);
+
                     serviceTypeRepository.save(st);
 
                     System.out.println("✅ ServiceType inserted: " + seed.name());

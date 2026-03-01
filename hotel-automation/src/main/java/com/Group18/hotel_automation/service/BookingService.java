@@ -6,6 +6,7 @@ import com.Group18.hotel_automation.entity.*;
 import com.Group18.hotel_automation.enums.BillItemSourceType;
 import com.Group18.hotel_automation.enums.BillStatus;
 import com.Group18.hotel_automation.enums.BookingStatus;
+import com.Group18.hotel_automation.enums.RoomStatus;
 import com.Group18.hotel_automation.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,13 +60,21 @@ public class BookingService {
                                     LocalDate checkIn,
                                     LocalDate checkOut) {
 
+        if (!room.getActive()) return false;
+
+        if (room.getStatus() != RoomStatus.AVAILABLE) return false;
+
         List<Booking> overlappingBookings =
-                bookingRepository.findByRoomAndStatusAndCheckOutAfterAndCheckInBefore(
-                        room,
-                        BookingStatus.BOOKED,
-                        checkIn,
-                        checkOut
-                );
+                bookingRepository
+                        .findByRoomAndStatusInAndCheckOutAfterAndCheckInBefore(
+                                room,
+                                List.of(
+                                        BookingStatus.BOOKED,
+                                        BookingStatus.CHECKED_IN
+                                ),
+                                checkIn,
+                                checkOut
+                        );
 
         return overlappingBookings.isEmpty();
     }
@@ -168,4 +177,71 @@ public class BookingService {
         bookingRepository.save(booking);
     }
 
+    @Transactional
+    public Booking checkOut(Long bookingId) {
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if (booking.getStatus() != BookingStatus.CHECKED_IN) {
+            throw new RuntimeException("Only CHECKED_IN bookings can be checked out");
+        }
+
+        LocalDate today = LocalDate.now();
+
+        if (today.isBefore(booking.getCheckIn())) {
+            throw new RuntimeException("Cannot check-out before check-in date");
+        }
+
+        if (today.isAfter(booking.getCheckOut())) {
+            throw new RuntimeException("Booking stay period already ended");
+        }
+
+        booking.setStatus(BookingStatus.COMPLETED);
+
+        Room room = booking.getRoom();
+        room.setStatus(RoomStatus.AVAILABLE);
+
+        // 🔥 Close bill automatically
+        User user = booking.getUser();
+
+        Bill bill = billRepository
+                .findByUserAndStatus(user, BillStatus.OPEN)
+                .orElse(null);
+
+        if (bill != null) {
+            bill.setStatus(BillStatus.PAID);
+            billRepository.save(bill);
+        }
+
+        return bookingRepository.save(booking);
+    }
+
+    @Transactional
+    public Booking checkIn(Long bookingId) {
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if (booking.getStatus() != BookingStatus.BOOKED) {
+            throw new RuntimeException("Only BOOKED bookings can be checked in");
+        }
+
+        LocalDate today = LocalDate.now();
+
+        if (today.isBefore(booking.getCheckIn())) {
+            throw new RuntimeException("Cannot check-in before booking start date");
+        }
+
+        if (!today.isBefore(booking.getCheckOut())) {
+            throw new RuntimeException("Booking already expired");
+        }
+
+        booking.setStatus(BookingStatus.CHECKED_IN);
+
+        Room room = booking.getRoom();
+        room.setStatus(RoomStatus.OCCUPIED);
+
+        return bookingRepository.save(booking);
+    }
 }

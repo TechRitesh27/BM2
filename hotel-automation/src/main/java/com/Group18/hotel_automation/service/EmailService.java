@@ -17,15 +17,15 @@ public class EmailService {
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setSubject("Your Hotel Automation Account");
+        message.setSubject("Welcome to BM Group of Hotels");
         message.setText(
                 "Hello " + name + ",\n\n" +
-                        "Your staff account has been created.\n\n" +
+                        "Your staff account has been created successfully.\n\n" +
                         "Login Credentials:\n" +
                         "Email: " + toEmail + "\n" +
                         "Temporary Password: " + password + "\n\n" +
-                        "Please change your password after first login.\n\n" +
-                        "Regards,\nHotel Management"
+                        "Please make sure to updated your password later on\n\n" +
+                        "Regards,\nBM Group of Hotels"
         );
 
         mailSender.send(message);
