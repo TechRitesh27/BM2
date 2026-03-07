@@ -78,7 +78,8 @@ public class AuthService {
         return new LoginResponse(
                 accessToken,
                 refreshToken.getToken(),
-                user.getRole().getName()
+                user.getRole().getName(),
+                user.getStaffType() != null ? user.getStaffType().getName() : null
         );
     }
 
@@ -159,7 +160,8 @@ public class AuthService {
         return new LoginResponse(
                 newAccessToken,
                 refreshToken.getToken(),
-                user.getRole().getName()
+                user.getRole().getName(),
+                user.getStaffType() != null ? user.getStaffType().getName() : null
         );
     }
 }

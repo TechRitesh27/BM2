@@ -200,7 +200,8 @@ public class BookingService {
         booking.setStatus(BookingStatus.COMPLETED);
 
         Room room = booking.getRoom();
-        room.setStatus(RoomStatus.AVAILABLE);
+        room.setStatus(RoomStatus.DIRTY);
+        roomRepository.save(room);
 
         // 🔥 Close bill automatically
         User user = booking.getUser();

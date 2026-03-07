@@ -88,4 +88,15 @@ public class StaffServiceController {
                 staffDashboardService.getDashboard(auth.getName())
         );
     }
+
+    // ===============================
+// 7️⃣ SERVICE HISTORY
+// ===============================
+    @GetMapping("/services/history")
+    public ResponseEntity<List<ServiceRequest>> history(Authentication auth) {
+
+        return ResponseEntity.ok(
+                service.getServiceHistory(auth.getName())
+        );
+    }
 }

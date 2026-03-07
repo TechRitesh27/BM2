@@ -32,4 +32,9 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
             ServiceRequestStatus status,
             StaffType staffType
     );
+
+    List<ServiceRequest> findByAssignedStaffAndStatusIn(
+            User staff,
+            List<ServiceRequestStatus> statuses
+    );
 }

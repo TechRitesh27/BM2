@@ -243,4 +243,18 @@ public class ServiceRequestService {
 
         return serviceRequestRepository.findByAssignedStaff(staff);
     }
+
+    public List<ServiceRequest> getServiceHistory(String staffEmail) {
+
+        User staff = userRepository.findByEmail(staffEmail)
+                .orElseThrow(() -> new RuntimeException("Staff not found"));
+
+        return serviceRequestRepository.findByAssignedStaffAndStatusIn(
+                staff,
+                List.of(
+                        ServiceRequestStatus.COMPLETED,
+                        ServiceRequestStatus.REJECTED
+                )
+        );
+    }
 }
