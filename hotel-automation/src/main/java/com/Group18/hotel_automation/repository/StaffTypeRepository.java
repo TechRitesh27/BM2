@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface StaffTypeRepository extends JpaRepository<StaffType, Long> {
     Optional<StaffType> findByName(String name);
+
 }

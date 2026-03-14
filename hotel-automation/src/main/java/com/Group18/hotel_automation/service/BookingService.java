@@ -132,6 +132,7 @@ public class BookingService {
                 .orElseGet(() -> {
                     Bill newBill = new Bill();
                     newBill.setUser(user);
+                    newBill.setBooking(booking);   // ⭐ IMPORTANT
                     newBill.setStatus(BillStatus.OPEN);
                     newBill.setTotalAmount(0.0);
                     return billRepository.save(newBill);
