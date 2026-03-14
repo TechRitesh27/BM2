@@ -37,4 +37,6 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
             User staff,
             List<ServiceRequestStatus> statuses
     );
+
+    long countByUserAndStatus(User user, ServiceRequestStatus status);
 }
