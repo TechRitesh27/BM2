@@ -30,6 +30,11 @@ public class RoomTypeService {
         roomType.setBasePrice(request.getBasePrice());
         roomType.setCapacity(request.getCapacity());
         roomType.setActive(true);
+        roomType.setBedType(request.getBedType());
+        roomType.setRoomSize(request.getRoomSize());
+        roomType.setAmenities(request.getAmenities());
+        roomType.setImageUrl(request.getImageUrl());
+        roomType.setPriority(request.getPriority());
 
         return roomTypeRepository.save(roomType);
     }

@@ -2,6 +2,8 @@ package com.Group18.hotel_automation.service;
 
 import com.Group18.hotel_automation.dto.BookRoomRequest;
 import com.Group18.hotel_automation.dto.RoomAvailabilityRequest;
+import com.Group18.hotel_automation.dto.RoomTypeAvailabilityResponse;
+import com.Group18.hotel_automation.dto.UpgradeSuggestionResponse;
 import com.Group18.hotel_automation.entity.*;
 import com.Group18.hotel_automation.enums.BillItemSourceType;
 import com.Group18.hotel_automation.enums.BillStatus;
@@ -23,17 +25,21 @@ public class BookingService {
     private final BillRepository billRepository;
     private final BillItemRepository billItemRepository;
     private final UserRepository userRepository;
+    private final RoomTypeRepository roomTypeRepository;
 
     public BookingService(RoomRepository roomRepository,
                           BookingRepository bookingRepository,
                           BillRepository billRepository,
                           BillItemRepository billItemRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          RoomTypeRepository roomTypeRepository) {
+
         this.roomRepository = roomRepository;
         this.bookingRepository = bookingRepository;
         this.billRepository = billRepository;
         this.billItemRepository = billItemRepository;
         this.userRepository = userRepository;
+        this.roomTypeRepository = roomTypeRepository;
     }
 
     // -------- SEARCH AVAILABLE ROOMS --------
@@ -91,8 +97,21 @@ public class BookingService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Room room = roomRepository.findById(request.getRoomId())
-                .orElseThrow(() -> new RuntimeException("Room not found"));
+        RoomType roomType = roomTypeRepository.findById(request.getRoomTypeId())
+                .orElseThrow(() -> new RuntimeException("Room type not found"));
+
+        Room room = allocateRoom(
+                roomType.getId(),
+                request.getCheckIn(),
+                request.getCheckOut()
+        );
+
+        if (Boolean.TRUE.equals(request.getUpgradeAccepted())) {
+
+            System.out.println("User accepted room upgrade to: "
+                    + roomType.getName());
+
+        }
 
         if (!room.getActive()) {
             throw new RuntimeException("Room is not active");
@@ -113,7 +132,20 @@ public class BookingService {
                 request.getCheckOut()
         );
 
-        double amount = nights * room.getRoomType().getBasePrice();
+        double basePrice = room.getRoomType().getBasePrice();
+
+        long occupiedRooms = roomRepository.countByStatus(RoomStatus.OCCUPIED);
+        long totalRooms = roomRepository.count();
+
+        double occupancyRate = (double) occupiedRooms / totalRooms;
+
+        if (occupancyRate > 0.7) {
+            basePrice *= 1.2; // increase price
+        } else if (occupancyRate < 0.4) {
+            basePrice *= 0.9; // discount
+        }
+
+        double amount = nights * basePrice;
 
         // 1️⃣ Create Booking
         Booking booking = new Booking();
@@ -245,5 +277,136 @@ public class BookingService {
         room.setStatus(RoomStatus.OCCUPIED);
 
         return bookingRepository.save(booking);
+    }
+
+//    Smart Room Allocation Method
+    private Room allocateRoom(Long roomTypeId,
+                              LocalDate checkIn,
+                              LocalDate checkOut) {
+
+        List<Room> candidateRooms =
+                roomRepository.findByRoomTypeIdAndActiveTrue(roomTypeId);
+
+        List<Room> availableRooms = candidateRooms.stream()
+                .filter(room -> isRoomAvailable(room, checkIn, checkOut))
+                .toList();
+
+        if (availableRooms.isEmpty()) {
+            throw new RuntimeException("No available room for selected type");
+        }
+
+        // Simple smart allocation rule
+        return availableRooms.stream()
+                .sorted((r1, r2) -> r1.getFloor().compareTo(r2.getFloor()))
+                .findFirst()
+                .orElseThrow();
+    }
+
+//    Room Upgrade Suggestion
+    public UpgradeSuggestionResponse checkUpgradeSuggestion(Long selectedRoomTypeId,
+                                                            LocalDate checkIn,
+                                                            LocalDate checkOut) {
+
+        RoomType selectedType = roomTypeRepository.findById(selectedRoomTypeId)
+                .orElseThrow(() -> new RuntimeException("Room type not found"));
+
+        List<RoomType> higherTypes =
+                roomTypeRepository.findByPriorityGreaterThanOrderByPriorityAsc(
+                        selectedType.getPriority()
+                );
+
+        for (RoomType higherType : higherTypes) {
+
+            List<Room> rooms =
+                    roomRepository.findByRoomTypeIdAndActiveTrue(higherType.getId());
+
+            long availableCount = rooms.stream()
+                    .filter(room -> isRoomAvailable(room, checkIn, checkOut))
+                    .count();
+
+            if (availableCount > 2) {
+
+                UpgradeSuggestionResponse response = new UpgradeSuggestionResponse();
+                response.setAvailable(true);
+                response.setRoomTypeId(higherType.getId());
+                response.setRoomTypeName(higherType.getName());
+
+                double difference =
+                        higherType.getBasePrice() - selectedType.getBasePrice();
+
+                response.setPriceDifference(difference);
+
+                return response;
+            }
+        }
+
+        UpgradeSuggestionResponse response = new UpgradeSuggestionResponse();
+        response.setAvailable(false);
+        return response;
+    }
+
+    public List<RoomTypeAvailabilityResponse> findAvailableRoomTypes(RoomAvailabilityRequest request) {
+
+        if (request.getCheckOut().isBefore(request.getCheckIn()) ||
+                request.getCheckOut().isEqual(request.getCheckIn())) {
+            throw new RuntimeException("Check-out date must be after check-in date");
+        }
+
+        List<RoomType> roomTypes = roomTypeRepository.findAll()
+                .stream()
+                .filter(RoomType::getActive)
+                .toList();
+
+        return roomTypes.stream().map(type -> {
+
+            List<Room> rooms = roomRepository
+                    .findByRoomTypeIdAndActiveTrue(type.getId());
+
+            long availableCount = rooms.stream()
+                    .filter(room -> isRoomAvailable(
+                            room,
+                            request.getCheckIn(),
+                            request.getCheckOut()))
+                    .count();
+
+            if (availableCount == 0) return null;
+
+            RoomTypeAvailabilityResponse response =
+                    new RoomTypeAvailabilityResponse();
+
+            response.setRoomTypeId(type.getId());
+            response.setName(type.getName());
+            response.setDescription(type.getDescription());
+            double dynamicPrice = calculateDynamicPrice(type);
+            response.setPrice(dynamicPrice);
+            response.setCapacity(type.getCapacity());
+            response.setBedType(type.getBedType());
+            response.setRoomSize(type.getRoomSize());
+            response.setAmenities(type.getAmenities());
+            response.setImageUrl(type.getImageUrl());
+            response.setAvailableRooms(availableCount);
+
+            return response;
+
+        }).filter(r -> r != null).toList();
+    }
+
+    private double calculateDynamicPrice(RoomType roomType) {
+
+        long occupiedRooms = roomRepository.countByStatus(RoomStatus.OCCUPIED);
+        long totalRooms = roomRepository.count();
+
+        double occupancyRate = (double) occupiedRooms / totalRooms;
+
+        double price = roomType.getBasePrice();
+
+        if (occupancyRate > 0.7) {
+            price *= 1.2;
+        }
+        else if (occupancyRate < 0.4) {
+            price *= 0.9;
+        }
+
+        return price;
     }
 }
