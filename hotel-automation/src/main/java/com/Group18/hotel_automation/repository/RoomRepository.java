@@ -14,4 +14,7 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     long countByStatus(RoomStatus status);
 
     List<Room> findByStatus(RoomStatus status);
+
+    // ⭐ Needed for Smart Allocation
+    List<Room> findByRoomTypeIdAndActiveTrue(Long roomTypeId);
 }

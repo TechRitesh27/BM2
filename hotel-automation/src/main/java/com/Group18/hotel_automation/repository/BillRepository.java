@@ -33,4 +33,6 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
        """)
     List<Object[]> getMonthlyRevenueData();
 
+
+
 }

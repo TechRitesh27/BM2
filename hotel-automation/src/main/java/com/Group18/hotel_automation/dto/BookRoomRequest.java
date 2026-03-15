@@ -1,13 +1,12 @@
 package com.Group18.hotel_automation.dto;
 
 import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDate;
 
 public class BookRoomRequest {
 
     @NotNull
-    private Long roomId;
+    private Long roomTypeId;
 
     @NotNull
     private LocalDate checkIn;
@@ -15,29 +14,39 @@ public class BookRoomRequest {
     @NotNull
     private LocalDate checkOut;
 
-    // getters & setters
+    private Boolean upgradeAccepted = false;
 
-    public @NotNull Long getRoomId() {
-        return roomId;
+//    Getters and setters
+
+    public Long getRoomTypeId() {
+        return roomTypeId;
     }
 
-    public void setRoomId(@NotNull Long roomId) {
-        this.roomId = roomId;
+    public void setRoomTypeId(Long roomTypeId) {
+        this.roomTypeId = roomTypeId;
     }
 
-    public @NotNull LocalDate getCheckIn() {
+    public LocalDate getCheckIn() {
         return checkIn;
     }
 
-    public void setCheckIn(@NotNull LocalDate checkIn) {
+    public void setCheckIn(LocalDate checkIn) {
         this.checkIn = checkIn;
     }
 
-    public @NotNull LocalDate getCheckOut() {
+    public LocalDate getCheckOut() {
         return checkOut;
     }
 
-    public void setCheckOut(@NotNull LocalDate checkOut) {
+    public void setCheckOut(LocalDate checkOut) {
         this.checkOut = checkOut;
+    }
+
+    public Boolean getUpgradeAccepted() {
+        return upgradeAccepted;
+    }
+
+    public void setUpgradeAccepted(Boolean upgradeAccepted) {
+        this.upgradeAccepted = upgradeAccepted;
     }
 }

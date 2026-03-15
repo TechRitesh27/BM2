@@ -1,34 +1,36 @@
 package com.Group18.hotel_automation.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+public class RoomTypeAvailabilityResponse {
 
-public class CreateRoomTypeRequest {
-
-    @NotBlank
+    private Long roomTypeId;
     private String name;
-
     private String description;
 
-    @NotNull
-    private Double basePrice;
-
-    @NotNull
+    private Double price;
     private Integer capacity;
 
     private String bedType;
     private Integer roomSize;
     private String amenities;
     private String imageUrl;
-    private Integer priority;
+
+    private long availableRooms;
 
     // getters & setters
 
-    public @NotBlank String getName() {
+    public Long getRoomTypeId() {
+        return roomTypeId;
+    }
+
+    public void setRoomTypeId(Long roomTypeId) {
+        this.roomTypeId = roomTypeId;
+    }
+
+    public String getName() {
         return name;
     }
 
-    public void setName(@NotBlank String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -40,19 +42,19 @@ public class CreateRoomTypeRequest {
         this.description = description;
     }
 
-    public @NotNull Double getBasePrice() {
-        return basePrice;
+    public Double getPrice() {
+        return price;
     }
 
-    public void setBasePrice(@NotNull Double basePrice) {
-        this.basePrice = basePrice;
+    public void setPrice(Double price) {
+        this.price = price;
     }
 
-    public @NotNull Integer getCapacity() {
+    public Integer getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(@NotNull Integer capacity) {
+    public void setCapacity(Integer capacity) {
         this.capacity = capacity;
     }
 
@@ -88,11 +90,11 @@ public class CreateRoomTypeRequest {
         this.imageUrl = imageUrl;
     }
 
-    public Integer getPriority() {
-        return priority;
+    public long getAvailableRooms() {
+        return availableRooms;
     }
 
-    public void setPriority(Integer priority) {
-        this.priority = priority;
+    public void setAvailableRooms(long availableRooms) {
+        this.availableRooms = availableRooms;
     }
 }

@@ -2,6 +2,8 @@ package com.Group18.hotel_automation.controller;
 
 import com.Group18.hotel_automation.dto.BookRoomRequest;
 import com.Group18.hotel_automation.dto.RoomAvailabilityRequest;
+import com.Group18.hotel_automation.dto.RoomTypeAvailabilityResponse;
+import com.Group18.hotel_automation.dto.UpgradeSuggestionResponse;
 import com.Group18.hotel_automation.entity.Booking;
 import com.Group18.hotel_automation.entity.Room;
 import com.Group18.hotel_automation.service.BookingService;
@@ -24,11 +26,11 @@ public class GuestRoomController {
 
     // -------- SEARCH AVAILABLE ROOMS --------
     @PostMapping("/available")
-    public ResponseEntity<List<Room>> findAvailableRooms(
+    public ResponseEntity<List<RoomTypeAvailabilityResponse>> findAvailableRooms(
             @Valid @RequestBody RoomAvailabilityRequest request) {
 
         return ResponseEntity.ok(
-                bookingService.findAvailableRooms(request)
+                bookingService.findAvailableRoomTypes(request)
         );
     }
 
@@ -42,6 +44,19 @@ public class GuestRoomController {
 
         return ResponseEntity.ok(
                 bookingService.bookRoom(request, userEmail)
+        );
+    }
+
+    @PostMapping("/upgrade-suggestion")
+    public ResponseEntity<UpgradeSuggestionResponse> getUpgradeSuggestion(
+            @RequestBody BookRoomRequest request) {
+
+        return ResponseEntity.ok(
+                bookingService.checkUpgradeSuggestion(
+                        request.getRoomTypeId(),
+                        request.getCheckIn(),
+                        request.getCheckOut()
+                )
         );
     }
 }
