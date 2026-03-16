@@ -14,8 +14,9 @@ public class EmailService {
     }
 
     public void sendStaffCredentials(String toEmail, String name, String password) {
-
+        System.out.println("Sending email to: " + toEmail);
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("riteshukade27@gmail.com");
         message.setTo(toEmail);
         message.setSubject("Welcome to BM Group of Hotels");
         message.setText(

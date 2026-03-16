@@ -9,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.Group18.hotel_automation.service.EmailService;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,14 +23,15 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-
+    private final EmailService emailService;
     public AuthService(AuthenticationManager authenticationManager,
                        UserRepository userRepository,
                        RoleRepository roleRepository,
                        StaffTypeRepository staffTypeRepository,
                        RefreshTokenRepository refreshTokenRepository,
                        PasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil) {
+                       JwtUtil jwtUtil,
+                       EmailService emailService) {
 
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
@@ -39,6 +40,7 @@ public class AuthService {
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.emailService = emailService;
     }
 
     // -------- LOGIN --------
@@ -131,7 +133,11 @@ public class AuthService {
         staff.setActive(true);
 
         userRepository.save(staff);
-
+        emailService.sendStaffCredentials(
+                request.getEmail(),
+                request.getName(),
+                tempPassword
+        );
         // In real app → email this password
         System.out.println("👷 Staff created: " + request.getEmail());
         System.out.println("🔑 Temp password: " + tempPassword);
