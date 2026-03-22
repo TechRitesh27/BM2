@@ -113,6 +113,22 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+<!--		QR Dependencies-->
+
+		<!-- ZXing Core -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>3.5.3</version>
+		</dependency>
+
+		<!-- ZXing JavaSE (THIS FIXES YOUR ERROR) -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>javase</artifactId>
+			<version>3.5.3</version>
+		</dependency>
+
 
 	</dependencies>
 

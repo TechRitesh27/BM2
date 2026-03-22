@@ -1,6 +1,7 @@
 package com.Group18.hotel_automation.controller;
 
 import com.Group18.hotel_automation.entity.Booking;
+import com.Group18.hotel_automation.repository.BookingRepository;
 import com.Group18.hotel_automation.service.BookingService;
 import com.Group18.hotel_automation.service.StaffSecurityService;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +18,13 @@ public class FrontDeskController {
 
     private final BookingService bookingService;
     private final StaffSecurityService staffSecurityService;
+    private final BookingRepository bookingRepository;
 
     public FrontDeskController(BookingService bookingService,
-                               StaffSecurityService staffSecurityService) {
+                               StaffSecurityService staffSecurityService, BookingRepository bookingRepository) {
         this.bookingService = bookingService;
         this.staffSecurityService = staffSecurityService;
+        this.bookingRepository = bookingRepository;
     }
 
     // VIEW ALL BOOKINGS
@@ -62,5 +65,21 @@ public class FrontDeskController {
 
         bookingService.checkOut(id);
         return ResponseEntity.ok("Guest checked out successfully");
+    }
+
+    @GetMapping("/scan")
+    public ResponseEntity<Booking> scanQr(
+            @RequestParam String token,
+            Authentication auth) {
+
+        staffSecurityService.validateDepartmentAccess(
+                auth.getName(),
+                "FRONT_DESK"
+        );
+
+        Booking booking = bookingRepository.findByQrToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid QR"));
+
+        return ResponseEntity.ok(booking);
     }
 }

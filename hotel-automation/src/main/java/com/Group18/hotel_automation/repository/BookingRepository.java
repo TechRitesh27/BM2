@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
@@ -32,5 +33,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     long countByUser(User user);
 
     long countByUserAndStatus(User user, BookingStatus status);
+
+    Optional<Booking> findByQrToken(String token);
+
+    boolean existsByUserAndStatusIn(User user, List<BookingStatus> statuses);
 
 }

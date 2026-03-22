@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class BookingService {
@@ -89,102 +90,97 @@ public class BookingService {
     @Transactional
     public Booking bookRoom(BookRoomRequest request, String userEmail) {
 
+        // 1️⃣ Validate dates
         if (request.getCheckOut().isBefore(request.getCheckIn()) ||
                 request.getCheckOut().isEqual(request.getCheckIn())) {
             throw new RuntimeException("Invalid date range");
         }
 
+        // 2️⃣ Get user
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // 3️⃣ Prevent duplicate active booking
+        boolean hasActiveBooking = bookingRepository
+                .existsByUserAndStatusIn(
+                        user,
+                        List.of(BookingStatus.BOOKED, BookingStatus.CHECKED_IN)
+                );
+
+        if (hasActiveBooking) {
+            throw new RuntimeException("You already have an active booking");
+        }
+
+        // 4️⃣ Get room type
         RoomType roomType = roomTypeRepository.findById(request.getRoomTypeId())
                 .orElseThrow(() -> new RuntimeException("Room type not found"));
 
+        // 5️⃣ Allocate room (SMART)
         Room room = allocateRoom(
                 roomType.getId(),
                 request.getCheckIn(),
                 request.getCheckOut()
         );
 
-        if (Boolean.TRUE.equals(request.getUpgradeAccepted())) {
-
-            System.out.println("User accepted room upgrade to: "
-                    + roomType.getName());
-
+        // 6️⃣ Validate availability again (double safety)
+        if (!isRoomAvailable(room, request.getCheckIn(), request.getCheckOut())) {
+            throw new RuntimeException("Room not available");
         }
 
-        if (!room.getActive()) {
-            throw new RuntimeException("Room is not active");
-        }
-
-        boolean available = isRoomAvailable(
-                room,
-                request.getCheckIn(),
-                request.getCheckOut()
-        );
-
-        if (!available) {
-            throw new RuntimeException("Room is not available for selected dates");
-        }
-
+        // 7️⃣ Nights calculation (IMPORTANT FIX)
         long nights = ChronoUnit.DAYS.between(
                 request.getCheckIn(),
                 request.getCheckOut()
         );
 
-        double basePrice = room.getRoomType().getBasePrice();
-
-        long occupiedRooms = roomRepository.countByStatus(RoomStatus.OCCUPIED);
-        long totalRooms = roomRepository.count();
-
-        double occupancyRate = (double) occupiedRooms / totalRooms;
-
-        if (occupancyRate > 0.7) {
-            basePrice *= 1.2; // increase price
-        } else if (occupancyRate < 0.4) {
-            basePrice *= 0.9; // discount
+        if (nights <= 0) {
+            throw new RuntimeException("Invalid stay duration");
         }
 
-        double amount = nights * basePrice;
+        // 8️⃣ Dynamic pricing
+        double pricePerNight = calculateDynamicPrice(roomType);
+        double totalAmount = pricePerNight * nights;
 
-        // 1️⃣ Create Booking
+        // 9️⃣ Create booking
         Booking booking = new Booking();
         booking.setUser(user);
         booking.setRoom(room);
         booking.setCheckIn(request.getCheckIn());
         booking.setCheckOut(request.getCheckOut());
-        booking.setTotalAmount(amount);
+        booking.setTotalAmount(totalAmount);
         booking.setStatus(BookingStatus.BOOKED);
+
+        // 🔥 QR Token
+        booking.setQrToken(UUID.randomUUID().toString());
+        booking.setQrUsed(false);
 
         bookingRepository.save(booking);
 
-        // 2️⃣ Get or Create OPEN Bill
+        // 🔟 Billing
         Bill bill = billRepository
                 .findByUserAndStatus(user, BillStatus.OPEN)
                 .orElseGet(() -> {
                     Bill newBill = new Bill();
                     newBill.setUser(user);
-                    newBill.setBooking(booking);   // ⭐ IMPORTANT
+                    newBill.setBooking(booking);
                     newBill.setStatus(BillStatus.OPEN);
                     newBill.setTotalAmount(0.0);
                     return billRepository.save(newBill);
                 });
 
-        // 3️⃣ Create BillItem
-        BillItem billItem = new BillItem();
-        billItem.setBill(bill);
-        billItem.setDescription(
-                "Room booking – " + room.getRoomNumber() +
-                        " (" + nights + " nights)"
+        BillItem item = new BillItem();
+        item.setBill(bill);
+        item.setDescription(
+                "Room " + room.getRoomNumber() +
+                        " (" + nights + " nights @ ₹" + pricePerNight + ")"
         );
-        billItem.setAmount(amount);
-        billItem.setSourceType(BillItemSourceType.ROOM_BOOKING);
-        billItem.setSourceId(booking.getId());
+        item.setAmount(totalAmount);
+        item.setSourceType(BillItemSourceType.ROOM_BOOKING);
+        item.setSourceId(booking.getId());
 
-        billItemRepository.save(billItem);
+        billItemRepository.save(item);
 
-        // 4️⃣ Update Bill Total
-        bill.setTotalAmount(bill.getTotalAmount() + amount);
+        bill.setTotalAmount(bill.getTotalAmount() + totalAmount);
         billRepository.save(bill);
 
         return booking;
@@ -258,23 +254,32 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         if (booking.getStatus() != BookingStatus.BOOKED) {
-            throw new RuntimeException("Only BOOKED bookings can be checked in");
+            throw new RuntimeException("Only BOOKED bookings allowed");
         }
 
         LocalDate today = LocalDate.now();
 
+        // ❌ Too early
         if (today.isBefore(booking.getCheckIn())) {
-            throw new RuntimeException("Cannot check-in before booking start date");
+            throw new RuntimeException("Too early to check-in");
         }
 
+        // ⚠ Late arrival (industry behavior)
+        if (today.isAfter(booking.getCheckIn())) {
+            System.out.println("Late check-in for booking " + booking.getId());
+        }
+
+        // ❌ Expired
         if (!today.isBefore(booking.getCheckOut())) {
-            throw new RuntimeException("Booking already expired");
+            throw new RuntimeException("Booking expired");
         }
 
         booking.setStatus(BookingStatus.CHECKED_IN);
 
         Room room = booking.getRoom();
         room.setStatus(RoomStatus.OCCUPIED);
+
+        roomRepository.save(room);
 
         return bookingRepository.save(booking);
     }

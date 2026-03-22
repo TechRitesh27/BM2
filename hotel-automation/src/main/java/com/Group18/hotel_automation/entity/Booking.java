@@ -40,6 +40,11 @@ public class Booking {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(unique = true)
+    private String qrToken;
+
+    private Boolean qrUsed = false;
+
     // getters & setters
 
     public Long getId() {
@@ -104,5 +109,21 @@ public class Booking {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getQrToken() {
+        return qrToken;
+    }
+
+    public void setQrToken(String qrToken) {
+        this.qrToken = qrToken;
+    }
+
+    public Boolean getQrUsed() {
+        return qrUsed;
+    }
+
+    public void setQrUsed(Boolean qrUsed) {
+        this.qrUsed = qrUsed;
     }
 }

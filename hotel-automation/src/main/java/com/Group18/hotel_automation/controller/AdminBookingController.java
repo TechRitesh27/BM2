@@ -2,6 +2,7 @@ package com.Group18.hotel_automation.controller;
 
 import com.Group18.hotel_automation.entity.Booking;
 import com.Group18.hotel_automation.enums.BookingStatus;
+import com.Group18.hotel_automation.repository.BookingRepository;
 import com.Group18.hotel_automation.service.AuditService;
 import com.Group18.hotel_automation.service.BookingService;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +21,13 @@ public class AdminBookingController {
 
     private final AuditService auditService;
 
+
+
     // ✅ REQUIRED constructor for final field injection
     public AdminBookingController(BookingService bookingService, AuditService auditService) {
 
         this.bookingService = bookingService;
         this.auditService = auditService;
-
     }
 
     @GetMapping
@@ -82,4 +84,5 @@ public class AdminBookingController {
 
         return ResponseEntity.ok(booking);
     }
+
 }
