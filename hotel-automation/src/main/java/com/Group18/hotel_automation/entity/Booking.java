@@ -45,7 +45,17 @@ public class Booking {
 
     private Boolean qrUsed = false;
 
-    // getters & setters
+    // 🔷 PAYMENT FIELDS (NEW)
+
+    @Column(name = "payment_status")
+    private String paymentStatus = "PENDING";
+
+    @Column(name = "payment_mode")
+    private String paymentMode;
+
+    // ========================
+    // GETTERS & SETTERS
+    // ========================
 
     public Long getId() {
         return id;
@@ -125,5 +135,23 @@ public class Booking {
 
     public void setQrUsed(Boolean qrUsed) {
         this.qrUsed = qrUsed;
+    }
+
+    // 🔷 PAYMENT GETTERS & SETTERS
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public String getPaymentMode() {
+        return paymentMode;
+    }
+
+    public void setPaymentMode(String paymentMode) {
+        this.paymentMode = paymentMode;
     }
 }
