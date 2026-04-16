@@ -1,16 +1,19 @@
 package com.Group18.hotel_automation.service;
 
 import com.razorpay.*;
-import com.Group18.hotel_automation.entity.Payment;
+import com.Group18.hotel_automation.entity.Bill;
 import com.Group18.hotel_automation.entity.Booking;
-import com.Group18.hotel_automation.repository.PaymentRepository;
+import com.Group18.hotel_automation.entity.Payment;
+import com.Group18.hotel_automation.enums.BillStatus;
+import com.Group18.hotel_automation.repository.BillRepository;
 import com.Group18.hotel_automation.repository.BookingRepository;
+import com.Group18.hotel_automation.repository.PaymentRepository;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,14 +28,17 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
+    private final BillRepository billRepository;
 
     public PaymentService(PaymentRepository paymentRepository,
-                          BookingRepository bookingRepository) {
+                          BookingRepository bookingRepository,
+                          BillRepository billRepository) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
+        this.billRepository = billRepository;
     }
 
-    // CREATE ORDER
+    // -------- CREATE ORDER --------
     public Map<String, Object> createOrder(Long bookingId, Double amount) throws Exception {
 
         Booking booking = bookingRepository.findById(bookingId)
@@ -41,7 +47,7 @@ public class PaymentService {
         RazorpayClient client = new RazorpayClient(key, secret);
 
         JSONObject options = new JSONObject();
-        options.put("amount", amount * 100);
+        options.put("amount", (long)(amount * 100)); // paise, must be integer
         options.put("currency", "INR");
         options.put("receipt", "txn_" + bookingId);
 
@@ -53,7 +59,6 @@ public class PaymentService {
         payment.setRazorpayOrderId(order.get("id"));
         payment.setStatus("CREATED");
         payment.setPaymentMode("RAZORPAY");
-        payment.setCreatedAt(LocalDateTime.now());
 
         paymentRepository.save(payment);
 
@@ -65,34 +70,40 @@ public class PaymentService {
         return response;
     }
 
-    // VERIFY PAYMENT
+    // -------- VERIFY PAYMENT --------
+    @Transactional
     public boolean verifyPayment(Map<String, String> data) throws Exception {
 
-        String orderId = data.get("razorpayOrderId");
+        String orderId   = data.get("razorpayOrderId");
         String paymentId = data.get("razorpayPaymentId");
         String signature = data.get("razorpaySignature");
 
         String payload = orderId + "|" + paymentId;
-
         boolean isValid = Utils.verifySignature(payload, signature, secret);
 
         Payment payment = paymentRepository.findByRazorpayOrderId(orderId)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() -> new RuntimeException("Payment record not found"));
 
         Booking booking = bookingRepository.findById(payment.getBookingId())
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         if (isValid) {
-
+            // Update payment record
             payment.setStatus("SUCCESS");
             payment.setRazorpayPaymentId(paymentId);
             payment.setRazorpaySignature(signature);
 
+            // Update booking payment status
             booking.setPaymentStatus("PAID");
             booking.setPaymentMode("RAZORPAY");
 
-        } else {
+            // Close the associated bill
+            billRepository.findByBooking(booking).ifPresent(bill -> {
+                bill.setStatus(BillStatus.PAID);
+                billRepository.save(bill);
+            });
 
+        } else {
             payment.setStatus("FAILED");
             booking.setPaymentStatus("FAILED");
         }
