@@ -2,6 +2,9 @@ package com.Group18.hotel_automation.entity;
 
 import com.Group18.hotel_automation.enums.BookingStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
@@ -9,6 +12,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bookings")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Booking {
 
     @Id
@@ -45,113 +51,9 @@ public class Booking {
 
     private Boolean qrUsed = false;
 
-    // 🔷 PAYMENT FIELDS (NEW)
-
     @Column(name = "payment_status")
     private String paymentStatus = "PENDING";
 
     @Column(name = "payment_mode")
     private String paymentMode;
-
-    // ========================
-    // GETTERS & SETTERS
-    // ========================
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Room getRoom() {
-        return room;
-    }
-
-    public void setRoom(Room room) {
-        this.room = room;
-    }
-
-    public LocalDate getCheckIn() {
-        return checkIn;
-    }
-
-    public void setCheckIn(LocalDate checkIn) {
-        this.checkIn = checkIn;
-    }
-
-    public LocalDate getCheckOut() {
-        return checkOut;
-    }
-
-    public void setCheckOut(LocalDate checkOut) {
-        this.checkOut = checkOut;
-    }
-
-    public Double getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
-    }
-
-    public BookingStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(BookingStatus status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getQrToken() {
-        return qrToken;
-    }
-
-    public void setQrToken(String qrToken) {
-        this.qrToken = qrToken;
-    }
-
-    public Boolean getQrUsed() {
-        return qrUsed;
-    }
-
-    public void setQrUsed(Boolean qrUsed) {
-        this.qrUsed = qrUsed;
-    }
-
-    // 🔷 PAYMENT GETTERS & SETTERS
-
-    public String getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(String paymentStatus) {
-        this.paymentStatus = paymentStatus;
-    }
-
-    public String getPaymentMode() {
-        return paymentMode;
-    }
-
-    public void setPaymentMode(String paymentMode) {
-        this.paymentMode = paymentMode;
-    }
 }

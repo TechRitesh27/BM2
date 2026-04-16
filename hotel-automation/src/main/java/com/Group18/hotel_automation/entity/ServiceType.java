@@ -5,7 +5,9 @@ import lombok.*;
 
 @Entity
 @Table(name = "service_types")
-@Getter @Setter @NoArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
 public class ServiceType {
 
     @Id
@@ -13,54 +15,14 @@ public class ServiceType {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String name;   // FOOD, LAUNDRY, CLEANING...
+    private String name;
 
     @Column(nullable = false)
-    private Double price;  // default charge
+    private Double price;
 
     private Boolean active = true;
 
     @ManyToOne
     @JoinColumn(name = "staff_type_id", nullable = false)
     private StaffType staffType;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public StaffType getStaffType() {
-        return staffType;
-    }
-
-    public void setStaffType(StaffType staffType) {
-        this.staffType = staffType;
-    }
 }

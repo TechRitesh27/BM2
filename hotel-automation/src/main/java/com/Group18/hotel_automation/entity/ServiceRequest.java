@@ -1,31 +1,32 @@
 package com.Group18.hotel_automation.entity;
 
+import com.Group18.hotel_automation.enums.ServiceRequestStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
-import com.Group18.hotel_automation.enums.ServiceRequestStatus;
 
 @Entity
 @Table(name = "service_requests")
-@Getter @Setter @NoArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
 public class ServiceRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // who requested
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // for which booking
     @ManyToOne
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
 
-    // what service
     @ManyToOne
     @JoinColumn(name = "service_type_id", nullable = false)
     private ServiceType serviceType;
@@ -34,7 +35,6 @@ public class ServiceRequest {
     @Column(nullable = false)
     private ServiceRequestStatus status;
 
-    // optional staff assignment
     @ManyToOne
     @JoinColumn(name = "staff_id")
     private User assignedStaff;
@@ -44,76 +44,4 @@ public class ServiceRequest {
 
     @Column(length = 500)
     private String rejectionReason;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Booking getBooking() {
-        return booking;
-    }
-
-    public void setBooking(Booking booking) {
-        this.booking = booking;
-    }
-
-    public ServiceType getServiceType() {
-        return serviceType;
-    }
-
-    public void setServiceType(ServiceType serviceType) {
-        this.serviceType = serviceType;
-    }
-
-    public User getAssignedStaff() {
-        return assignedStaff;
-    }
-
-    public void setAssignedStaff(User assignedStaff) {
-        this.assignedStaff = assignedStaff;
-    }
-
-    public LocalDateTime getRequestedAt() {
-        return requestedAt;
-    }
-
-    public void setRequestedAt(LocalDateTime requestedAt) {
-        this.requestedAt = requestedAt;
-    }
-
-    public LocalDateTime getCompletedAt() {
-        return completedAt;
-    }
-
-    public void setCompletedAt(LocalDateTime completedAt) {
-        this.completedAt = completedAt;
-    }
-
-    public ServiceRequestStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ServiceRequestStatus status) {
-        this.status = status;
-    }
-
-    public String getRejectionReason() {
-        return rejectionReason;
-    }
-
-    public void setRejectionReason(String rejectionReason) {
-        this.rejectionReason = rejectionReason;
-    }
 }

@@ -143,6 +143,14 @@ public class AuthService {
         System.out.println("🔑 Temp password: " + tempPassword);
     }
 
+    // -------- LOGOUT --------
+    @Transactional
+    public void logout(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        refreshTokenRepository.deleteByUser(user);
+    }
+
     // -------- REFRESH TOKEN --------
     @Transactional
     public LoginResponse refreshToken(RefreshTokenRequest request) {

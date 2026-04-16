@@ -4,7 +4,7 @@ import com.Group18.hotel_automation.dto.*;
 import com.Group18.hotel_automation.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,6 +32,13 @@ public class AuthController {
 
         authService.register(request);
         return ResponseEntity.ok("Guest registered successfully");
+    }
+
+    // -------- LOGOUT --------
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(Authentication authentication) {
+        authService.logout(authentication.getName());
+        return ResponseEntity.ok("Logged out successfully");
     }
 
     // -------- REFRESH TOKEN --------
